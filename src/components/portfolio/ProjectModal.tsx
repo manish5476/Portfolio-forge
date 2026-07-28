@@ -23,23 +23,18 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
   const allLinks = getAllProjectLinks(project);
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200 ${
-      isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'
-    }`}>
-      <div className={`border rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden relative space-y-0 max-h-[90vh] overflow-y-auto ${
-        isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
-      }`}>
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white border border-[#E7EAF0] rounded-t-3xl md:rounded-[28px] w-full max-w-2xl shadow-apple-modal overflow-hidden relative text-slate-900 max-h-[92vh] md:max-h-[90vh] overflow-y-auto">
         
+        {/* Mobile Sheet Drag Handle */}
+        <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto my-2.5 md:hidden" />
+
         {/* Close Button */}
         <button
           onClick={onClose}
-          className={`absolute top-4 right-4 z-20 p-2 rounded-full border backdrop-blur-md transition-all ${
-            isLight
-              ? 'bg-white/80 hover:bg-slate-100 text-slate-700 border-slate-200'
-              : 'bg-slate-950/80 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-800'
-          }`}
+          className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-white/90 hover:bg-slate-100 text-slate-700 border border-[#E7EAF0] shadow-xs backdrop-blur-md transition-all cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Hero Image or Visual Header */}

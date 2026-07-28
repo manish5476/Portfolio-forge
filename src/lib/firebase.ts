@@ -1,5 +1,19 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, User as FirebaseUser } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  signInWithPopup,
+  signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  User as FirebaseUser,
+} from 'firebase/auth';
 import {
   getFirestore,
   doc,
@@ -24,6 +38,7 @@ export const db = firebaseConfig.firestoreDatabaseId
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+export const githubProvider = new GithubAuthProvider();
 
 // Operation Types for error handling
 export enum OperationType {
@@ -103,6 +118,16 @@ export async function loginWithGoogle() {
   }
 }
 
+export async function loginWithGithub() {
+  try {
+    const result = await signInWithPopup(auth, githubProvider);
+    return result.user;
+  } catch (err) {
+    console.error('GitHub Auth Login Error:', err);
+    throw err;
+  }
+}
+
 export async function logoutUser() {
   try {
     await signOut(auth);
@@ -110,3 +135,14 @@ export async function logoutUser() {
     console.error('Logout error:', err);
   }
 }
+
+export {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+};
+

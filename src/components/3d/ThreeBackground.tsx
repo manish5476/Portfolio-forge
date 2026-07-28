@@ -3,9 +3,13 @@ import * as THREE from 'three';
 
 interface ThreeBackgroundProps {
   accentColor?: string;
+  isLight?: boolean;
 }
 
-export const ThreeBackground: React.FC<ThreeBackgroundProps> = ({ accentColor = '#06b6d4' }) => {
+export const ThreeBackground: React.FC<ThreeBackgroundProps> = ({
+  accentColor = '#2563eb',
+  isLight = true,
+}) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -14,133 +18,142 @@ export const ThreeBackground: React.FC<ThreeBackgroundProps> = ({ accentColor = 
 
     // 1. Scene, Camera, Renderer
     const scene = new THREE.Scene();
-    // Subtle fog for depth
-    scene.fog = new THREE.FogExp2(0x030712, 0.015);
+    
+    // Light background fog
+    scene.fog = new THREE.FogExp2(0xfafaf8, 0.012);
 
     const camera = new THREE.PerspectiveCamera(
-      60,
+      55,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
     );
-    camera.position.z = 35;
+    camera.position.z = 28;
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // 2. Interactive Wireframe Globe / Geodesic Sphere
-    const globeGroup = new THREE.Group();
-    scene.add(globeGroup);
+    // 2. Lighting for Glass Shapes
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambientLight);
 
-    const globeGeo = new THREE.IcosahedronGeometry(12, 3);
-    const globeMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(accentColor),
+    const dirLight1 = new THREE.DirectionalLight(0x3b82f6, 1.5);
+    dirLight1.position.set(20, 30, 20);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0x8b5cf6, 1.2);
+    dirLight2.position.set(-20, -20, 15);
+    scene.add(dirLight2);
+
+    const pointLight = new THREE.PointLight(0xec4899, 1, 50);
+    pointLight.position.set(0, 10, 10);
+    scene.add(pointLight);
+
+    // 3. Floating Glass Orbs Group
+    const glassGroup = new THREE.Group();
+    scene.add(glassGroup);
+
+    // Create translucent glass spheres & icosahedrons
+    const geometries = [
+      new THREE.IcosahedronGeometry(5, 1),
+      new THREE.SphereGeometry(3.5, 32, 32),
+      new THREE.TorusGeometry(4, 1.2, 16, 50),
+      new THREE.OctahedronGeometry(3, 0),
+      new THREE.SphereGeometry(2.2, 32, 32),
+    ];
+
+    const materials = [
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#3b82f6'),
+        roughness: 0.1,
+        transmission: 0.85,
+        thickness: 1.2,
+        transparent: true,
+        opacity: 0.35,
+        clearcoat: 1,
+        clearcoatRoughness: 0.1,
+      }),
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#8b5cf6'),
+        roughness: 0.15,
+        transmission: 0.9,
+        thickness: 1.5,
+        transparent: true,
+        opacity: 0.3,
+        clearcoat: 1,
+      }),
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#06b6d4'),
+        roughness: 0.05,
+        transmission: 0.8,
+        thickness: 0.8,
+        transparent: true,
+        opacity: 0.25,
+      }),
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#ec4899'),
+        roughness: 0.2,
+        transmission: 0.85,
+        thickness: 1.0,
+        transparent: true,
+        opacity: 0.2,
+      }),
+    ];
+
+    const meshes: { mesh: THREE.Mesh; rotSpeed: { x: number; y: number; z: number }; initialY: number; speedY: number }[] = [];
+
+    // Position floating objects
+    const positions = [
+      { x: 18, y: 8, z: -5 },
+      { x: -16, y: -6, z: -8 },
+      { x: 14, y: -12, z: -10 },
+      { x: -18, y: 10, z: -12 },
+      { x: 0, y: -14, z: -15 },
+    ];
+
+    positions.forEach((pos, idx) => {
+      const geo = geometries[idx % geometries.length];
+      const mat = materials[idx % materials.length];
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(pos.x, pos.y, pos.z);
+      glassGroup.add(mesh);
+
+      meshes.push({
+        mesh,
+        rotSpeed: {
+          x: (Math.random() - 0.5) * 0.008,
+          y: (Math.random() - 0.5) * 0.008,
+          z: (Math.random() - 0.5) * 0.005,
+        },
+        initialY: pos.y,
+        speedY: 0.5 + Math.random() * 0.5,
+      });
+    });
+
+    // 4. Soft Animated Gradient Mesh Waves
+    const planeGeo = new THREE.PlaneGeometry(80, 80, 32, 32);
+    const planeMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
       wireframe: true,
       transparent: true,
-      opacity: 0.12,
+      opacity: 0.04,
     });
-    const globeMesh = new THREE.Mesh(globeGeo, globeMat);
-    globeGroup.add(globeMesh);
+    const planeMesh = new THREE.Mesh(planeGeo, planeMat);
+    planeMesh.rotation.x = -Math.PI / 2.5;
+    planeMesh.position.set(0, -18, -20);
+    scene.add(planeMesh);
 
-    // Inner glowing core
-    const coreGeo = new THREE.IcosahedronGeometry(11.8, 2);
-    const coreMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color('#3b82f6'),
-      wireframe: true,
-      transparent: true,
-      opacity: 0.05,
-    });
-    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    globeGroup.add(coreMesh);
-
-    // Position globe off to top-right
-    globeGroup.position.set(22, 10, -10);
-
-    // 3. Particle System (Slow moving star/tech nodes field)
-    const particleCount = 700;
-    const particleGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
-    const scales = new Float32Array(particleCount);
-
-    const color1 = new THREE.Color(accentColor);
-    const color2 = new THREE.Color('#3b82f6');
-    const color3 = new THREE.Color('#8b5cf6');
-
-    for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 120;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 120;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 80;
-
-      // Mix colors
-      const rand = Math.random();
-      const mixedColor = rand < 0.4 ? color1 : rand < 0.7 ? color2 : color3;
-      colors[i * 3] = mixedColor.r;
-      colors[i * 3 + 1] = mixedColor.g;
-      colors[i * 3 + 2] = mixedColor.b;
-
-      scales[i] = Math.random() * 2 + 0.5;
-    }
-
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-    // Canvas particle texture
-    const createParticleTexture = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 32;
-      canvas.height = 32;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-        grad.addColorStop(0, 'rgba(255,255,255,1)');
-        grad.addColorStop(0.3, 'rgba(6,182,212,0.8)');
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(16, 16, 16, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      return new THREE.CanvasTexture(canvas);
-    };
-
-    const particleMat = new THREE.PointsMaterial({
-      size: 1.2,
-      vertexColors: true,
-      map: createParticleTexture(),
-      transparent: true,
-      opacity: 0.65,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-
-    const particles = new THREE.Points(particleGeo, particleMat);
-    scene.add(particles);
-
-    // 4. Floating Web3 Ring Grid
-    const ringGeo = new THREE.TorusGeometry(18, 0.15, 16, 100);
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(accentColor),
-      wireframe: true,
-      transparent: true,
-      opacity: 0.1,
-    });
-    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-    ringMesh.rotation.x = Math.PI / 3;
-    ringMesh.position.set(-25, -15, -15);
-    scene.add(ringMesh);
-
-    // 5. Mouse Interactivity Parallax
+    // 5. Mouse Parallax
     let mouseX = 0;
     let mouseY = 0;
     let targetX = 0;
     let targetY = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX = (e.clientX - window.innerWidth / 2) * 0.0005;
-      mouseY = (e.clientY - window.innerHeight / 2) * 0.0005;
+      mouseX = (e.clientX - window.innerWidth / 2) * 0.0003;
+      mouseY = (e.clientY - window.innerHeight / 2) * 0.0003;
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -166,22 +179,28 @@ export const ThreeBackground: React.FC<ThreeBackgroundProps> = ({ accentColor = 
       targetX += (mouseX - targetX) * 0.05;
       targetY += (mouseY - targetY) * 0.05;
 
-      // Rotate Globe
-      globeGroup.rotation.y = elapsedTime * 0.08 + targetX * 2;
-      globeGroup.rotation.x = elapsedTime * 0.04 + targetY * 2;
+      // Animate Glass Shapes
+      meshes.forEach(({ mesh, rotSpeed, initialY, speedY }) => {
+        mesh.rotation.x += rotSpeed.x;
+        mesh.rotation.y += rotSpeed.y;
+        mesh.rotation.z += rotSpeed.z;
+        mesh.position.y = initialY + Math.sin(elapsedTime * speedY) * 1.5;
+      });
 
-      // Rotate Ring
-      ringMesh.rotation.z = elapsedTime * 0.05;
-      ringMesh.rotation.y = elapsedTime * 0.03;
+      // Animate background wave mesh
+      const posAttr = planeGeo.attributes.position;
+      for (let i = 0; i < posAttr.count; i++) {
+        const u = posAttr.getX(i);
+        const v = posAttr.getY(i);
+        const z = Math.sin(elapsedTime * 0.8 + u * 0.1) * 0.8 + Math.cos(elapsedTime * 0.6 + v * 0.1) * 0.8;
+        posAttr.setZ(i, z);
+      }
+      posAttr.needsUpdate = true;
 
-      // Slowly rotate particle field
-      particles.rotation.y = elapsedTime * 0.02 + targetX * 1.5;
-      particles.rotation.x = elapsedTime * 0.01 + targetY * 1.5;
-
-      // Camera slight sway
-      camera.position.x = Math.sin(elapsedTime * 0.2) * 1 + targetX * 10;
-      camera.position.y = Math.cos(elapsedTime * 0.2) * 1 - targetY * 10;
-      camera.lookAt(scene.position);
+      // Subtle camera rotation
+      camera.position.x = Math.sin(elapsedTime * 0.1) * 0.5 + targetX * 12;
+      camera.position.y = Math.cos(elapsedTime * 0.1) * 0.5 - targetY * 12;
+      camera.lookAt(0, 0, 0);
 
       renderer.render(scene, camera);
     };
@@ -197,26 +216,23 @@ export const ThreeBackground: React.FC<ThreeBackgroundProps> = ({ accentColor = 
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
-      globeGeo.dispose();
-      globeMat.dispose();
-      coreGeo.dispose();
-      coreMat.dispose();
-      particleGeo.dispose();
-      particleMat.dispose();
-      ringGeo.dispose();
-      ringMat.dispose();
+      geometries.forEach((g) => g.dispose());
+      materials.forEach((m) => m.dispose());
+      planeGeo.dispose();
+      planeMat.dispose();
     };
   }, [accentColor]);
 
   return (
     <div
       ref={mountRef}
-      className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#030712]"
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#FAFAF8]"
       style={{
         backgroundImage: `
-          radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
-          radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
-          radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 60%)
+          radial-gradient(circle at 12% 18%, rgba(59, 130, 246, 0.08) 0%, transparent 45%),
+          radial-gradient(circle at 88% 25%, rgba(139, 92, 246, 0.07) 0%, transparent 45%),
+          radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.05) 0%, transparent 40%)
         `,
       }}
     />

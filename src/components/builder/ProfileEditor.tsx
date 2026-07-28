@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, User, MapPin, FileText, Palette, Image as ImageIcon, Check, Github } from 'lucide-react';
-import { Profile, AccentColor, ThemeMode } from '../../types';
+import { Profile, ThemeMode } from '../../types';
 import { enhanceWithAI } from '../../services/api';
 
 interface ProfileEditorProps {
@@ -43,14 +43,14 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ profile, onChange 
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+    <div className="space-y-6 text-slate-900">
+      <div className="flex items-center justify-between border-b border-[#E7EAF0] pb-4">
         <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <User className="w-5 h-5 text-cyan-400" />
+          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 font-display">
+            <User className="w-5 h-5 text-indigo-600" />
             Profile & Branding
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Personal bio, avatar, theme preferences, and identity information.
           </p>
         </div>
@@ -61,31 +61,31 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ profile, onChange 
         
         {/* Full Display Name */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">Display Name *</label>
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5">Display Name *</label>
           <input
             type="text"
             value={profile.displayName}
             onChange={(e) => handleField('displayName', e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors"
+            className="w-full px-4 py-3 bg-white border border-[#E7EAF0] rounded-2xl text-sm text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all shadow-xs"
             placeholder="e.g. Alex Rivera"
           />
         </div>
 
         {/* Tagline / Role */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">Tagline / Title *</label>
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5">Tagline / Title *</label>
           <input
             type="text"
             value={profile.tagline}
             onChange={(e) => handleField('tagline', e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors"
+            className="w-full px-4 py-3 bg-white border border-[#E7EAF0] rounded-2xl text-sm text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all shadow-xs"
             placeholder="e.g. Lead Frontend Engineer & Creative Technologist"
           />
         </div>
 
         {/* Location */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1">
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5 text-slate-400" />
             Location
           </label>
@@ -93,14 +93,14 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ profile, onChange 
             type="text"
             value={profile.location}
             onChange={(e) => handleField('location', e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors"
+            className="w-full px-4 py-3 bg-white border border-[#E7EAF0] rounded-2xl text-sm text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all shadow-xs"
             placeholder="e.g. San Francisco, CA"
           />
         </div>
 
         {/* Resume Link */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1">
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
             <FileText className="w-3.5 h-3.5 text-slate-400" />
             Resume / CV URL
           </label>
@@ -108,27 +108,27 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ profile, onChange 
             type="url"
             value={profile.resumeUrl}
             onChange={(e) => handleField('resumeUrl', e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors"
+            className="w-full px-4 py-3 bg-white border border-[#E7EAF0] rounded-2xl text-sm text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all shadow-xs"
             placeholder="https://example.com/resume.pdf"
           />
         </div>
 
         {/* GitHub Username / Handle */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
             <span className="flex items-center gap-1">
-              <Github className="w-3.5 h-3.5 text-cyan-400" />
+              <Github className="w-3.5 h-3.5 text-indigo-600" />
               Primary GitHub Username / Handle
             </span>
-            <span className="text-[10px] text-cyan-400 font-mono">Multiple IDs supported in GitHub Sync</span>
+            <span className="text-[10px] text-indigo-600 font-mono font-bold">Multiple IDs supported in GitHub Sync</span>
           </label>
           <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 font-mono text-xs">@</span>
+            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono text-xs">@</span>
             <input
               type="text"
               value={profile.githubUsername || ''}
               onChange={(e) => handleField('githubUsername', e.target.value)}
-              className="w-full pl-7 pr-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-cyan-500 transition-colors"
+              className="w-full pl-8 pr-4 py-3 bg-white border border-[#E7EAF0] rounded-2xl text-sm text-slate-900 font-mono focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all shadow-xs"
               placeholder="e.g. alexrivera"
             />
           </div>
@@ -137,36 +137,36 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ profile, onChange 
       </div>
 
       {/* Avatar Image URL & Presets */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-3">
-        <label className="block text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-          <ImageIcon className="w-4 h-4 text-cyan-400" />
+      <div className="bg-slate-50 border border-[#E7EAF0] rounded-2xl p-4 space-y-3">
+        <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+          <ImageIcon className="w-4 h-4 text-indigo-600" />
           Avatar Picture URL
         </label>
         <div className="flex flex-col sm:flex-row gap-3 items-center">
           <img
             src={profile.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=avatar'}
             alt="Avatar Preview"
-            className="w-14 h-14 rounded-full object-cover ring-2 ring-cyan-500/50 shrink-0"
+            className="w-14 h-14 rounded-full object-cover ring-2 ring-indigo-500/20 shrink-0 shadow-xs"
           />
           <input
             type="url"
             value={profile.avatarUrl}
             onChange={(e) => handleField('avatarUrl', e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 transition-colors"
+            className="w-full px-4 py-2.5 bg-white border border-[#E7EAF0] rounded-xl text-xs text-slate-900 focus:outline-none focus:border-indigo-500 transition-all shadow-xs"
             placeholder="https://images.unsplash.com/photo-..."
           />
         </div>
         
         {/* Preset Thumbnails */}
         <div>
-          <div className="text-[11px] font-medium text-slate-400 mb-2">Or choose a sample developer avatar:</div>
+          <div className="text-[11px] font-medium text-slate-500 mb-2">Or choose a sample developer avatar:</div>
           <div className="flex flex-wrap gap-2">
             {PRESET_AVATARS.map((url, idx) => (
               <button
                 key={idx}
                 onClick={() => handleField('avatarUrl', url)}
-                className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${
-                  profile.avatarUrl === url ? 'border-cyan-400 ring-2 ring-cyan-400/30 scale-105' : 'border-slate-700 opacity-60 hover:opacity-100'
+                className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all cursor-pointer ${
+                  profile.avatarUrl === url ? 'border-indigo-600 ring-2 ring-indigo-500/20 scale-105' : 'border-slate-200 opacity-70 hover:opacity-100'
                 }`}
               >
                 <img src={url} alt="Preset" className="w-full h-full object-cover" />
@@ -179,12 +179,12 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ profile, onChange 
       {/* Bio Field with AI Enhancer */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="block text-xs font-semibold text-slate-300">Professional Bio</label>
+          <label className="block text-xs font-semibold text-slate-700">Professional Bio</label>
           <button
             type="button"
             onClick={handleAiEnhanceBio}
             disabled={isEnhancing}
-            className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300 bg-cyan-950/60 border border-cyan-800/80 px-2.5 py-1 rounded-lg transition-all hover:bg-cyan-900/60 disabled:opacity-50"
+            className="flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-xl transition-all hover:bg-indigo-100 disabled:opacity-50 cursor-pointer"
           >
             <Sparkles className={`w-3.5 h-3.5 ${isEnhancing ? 'animate-spin' : ''}`} />
             {isEnhancing ? 'Refining with Gemini...' : 'Enhance with AI'}
@@ -194,7 +194,7 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ profile, onChange 
           rows={3}
           value={profile.bio}
           onChange={(e) => handleField('bio', e.target.value)}
-          className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors leading-relaxed"
+          className="w-full px-4 py-3 bg-white border border-[#E7EAF0] rounded-2xl text-sm text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all shadow-xs leading-relaxed"
           placeholder="Briefly describe your expertise, background, and what you build..."
         />
       </div>

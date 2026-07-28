@@ -8,7 +8,7 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Global Helper Primitives
+    // Helper Primitives
     function isValidId(id) {
       return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
@@ -25,36 +25,47 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Schema Validation Helper for Portfolio
-    function isValidPortfolio(data) {
-      return data.keys().hasAll(['id', 'username', 'profile', 'projects', 'achievements', 'updatedAt'])
-        && data.id is string && data.id.size() <= 128
-        && data.username is string && data.username.size() <= 64
-        && data.updatedAt is string && data.updatedAt.size() <= 64
-        && data.profile is map
-        && data.projects is list
-        && data.projects.size() <= 100
-        && data.achievements is list
-        && data.achievements.size() <= 100;
+    function isOwner(ownerUid) {
+      return isSignedIn() && request.auth.uid == ownerUid;
+    }
+
+    // User Profile Documents
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    // Username Claim Registry
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().uid == request.auth.uid;
+      allow update, delete: if isSignedIn() && existing().uid == request.auth.uid;
     }
 
     // Portfolio Documents Collection
     match /portfolios/{username} {
-      // Public read access for portfolios
+      // Anyone can view public portfolios
       allow get, list: if true;
 
-      // Allow creation if valid ID, payload matches schema, and document username equals path parameter
+      // Only authenticated users can create a portfolio where they are the designated owner
       allow create: if isValidId(username)
-        && isValidPortfolio(incoming())
-        && incoming().username == username;
+        && isSignedIn()
+        && (incoming().ownerId == request.auth.uid || incoming().id == request.auth.uid);
 
-      // Allow update if valid schema and path variable matches
+      // Only the authenticated portfolio owner can modify their portfolio data
       allow update: if isValidId(username)
-        && isValidPortfolio(incoming())
-        && incoming().username == username;
+        && isSignedIn()
+        && (
+          existing().ownerId == request.auth.uid || 
+          existing().id == request.auth.uid ||
+          (!('ownerId' in existing()) && incoming().ownerId == request.auth.uid)
+        );
 
-      // Allow delete if signed in
-      allow delete: if isSignedIn();
+      // Only the owner can delete the portfolio
+      allow delete: if isSignedIn() 
+        && (existing().ownerId == request.auth.uid || existing().id == request.auth.uid);
     }
   }
 }
+

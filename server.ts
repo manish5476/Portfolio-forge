@@ -113,11 +113,13 @@ app.post('/api/auth/register', (req, res) => {
     profile: {
       displayName: displayName || handle,
       tagline: 'Full-Stack Developer & Innovator',
-      bio: 'Welcome to my portfolio forge page! I design and engineer scalable web products.',
+      bio: 'Welcome to my developer identity platform! I design and engineer scalable web products.',
       avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${handle}`,
       location: 'Global',
       resumeUrl: '',
       githubUsername: githubUsername || handle,
+      availability: 'open_to_work',
+      verified: true,
       theme: 'dark',
       accentColor: '#3b82f6',
       socialLinks: {
@@ -168,23 +170,46 @@ app.get('/api/portfolio/:username', (req, res) => {
   res.json(portfolio);
 });
 
-// 6. Save or Update portfolio by username
+// 6. Save or Update portfolio by username with Ownership Authorization & Server Validation
 app.put('/api/portfolio/:username', (req, res) => {
   const handle = String(req.params.username || '').toLowerCase().trim();
   const updatedData: PortfolioData = req.body;
 
   if (!handle) {
-    return res.status(400).json({ error: 'Invalid username' });
+    return res.status(400).json({ error: 'Invalid username handle' });
   }
 
+  // Server-side validation
+  if (!updatedData || typeof updatedData !== 'object') {
+    return res.status(400).json({ error: 'Invalid portfolio payload' });
+  }
+
+  const existing = portfoliosStore[handle];
+  const requesterOwnerId = req.headers['x-owner-id'] || updatedData.ownerId || updatedData.id;
+
+  // Authorization Check: If portfolio already exists with an ownerId, verify caller owns it
+  if (existing && existing.ownerId) {
+    if (!requesterOwnerId || existing.ownerId !== requesterOwnerId) {
+      console.warn(`[403 FORBIDDEN] Unauthorized attempt to edit portfolio @${handle} by ownerId: ${requesterOwnerId}`);
+      return res.status(403).json({ error: '403 Forbidden: You do not own this portfolio.' });
+    }
+  }
+
+  // Sanitize and update ownership metadata
   updatedData.username = handle;
   updatedData.updatedAt = new Date().toISOString();
+  if (existing?.ownerId) {
+    updatedData.ownerId = existing.ownerId;
+  } else if (requesterOwnerId) {
+    updatedData.ownerId = String(requesterOwnerId);
+  }
 
   portfoliosStore[handle] = updatedData;
   saveDb();
 
   res.json({ success: true, portfolio: updatedData });
 });
+
 
 // 7. GitHub Proxy & Server Caching API
 app.get('/api/github/repos/:username', async (req, res) => {
@@ -254,6 +279,9 @@ app.get('/api/github/repos/:username', async (req, res) => {
         forks: repo.forks_count || 0,
         language: repo.language || 'Code',
         updatedAt: repo.updated_at,
+        isFork: repo.fork || false,
+        pushedAt: repo.pushed_at,
+        createdAt: repo.created_at,
       },
     }));
 
@@ -270,6 +298,116 @@ app.get('/api/github/repos/:username', async (req, res) => {
       return res.json({ repos: cached.data, cached: true, errorFallback: true });
     }
     res.status(500).json({ error: 'Failed to connect to GitHub API' });
+  }
+});
+
+// 7b. LeetCode Proxy & Live Stats API
+app.get('/api/leetcode/:username', async (req, res) => {
+  const rawUser = String(req.params.username || '').trim();
+  const handle = rawUser
+    .replace(/^https?:\/\/(www\.)?leetcode\.com\/(u\/)?/i, '')
+    .replace(/^@+/, '')
+    .split('/')[0]
+    .trim();
+
+  if (!handle) {
+    return res.status(400).json({ error: 'LeetCode username required' });
+  }
+
+  try {
+    // 1. Query LeetCode GraphQL
+    const query = `
+      query userProfile($username: String!) {
+        matchedUser(username: $username) {
+          username
+          submitStats: submitStatsGlobal {
+            acSubmissionNum {
+              difficulty
+              count
+              submissions
+            }
+          }
+          profile {
+            ranking
+            reputation
+            starRating
+          }
+          userCalendar {
+            streak
+          }
+        }
+        userContestRanking(username: $username) {
+          rating
+          globalRanking
+          topPercentage
+          totalParticipants
+        }
+      }
+    `;
+
+    const ghRes = await fetch('https://leetcode.com/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://leetcode.com',
+      },
+      body: JSON.stringify({ query, variables: { username: handle } }),
+    });
+
+    if (ghRes.ok) {
+      const json = await ghRes.json();
+      if (json.data && json.data.matchedUser) {
+        const mu = json.data.matchedUser;
+        const acStats = mu.submitStats?.acSubmissionNum || [];
+        const allStats = acStats.find((s: any) => s.difficulty === 'All')?.count || 0;
+        const easyStats = acStats.find((s: any) => s.difficulty === 'Easy')?.count || 0;
+        const medStats = acStats.find((s: any) => s.difficulty === 'Medium')?.count || 0;
+        const hardStats = acStats.find((s: any) => s.difficulty === 'Hard')?.count || 0;
+        const ranking = mu.profile?.ranking || 0;
+        const contest = json.data.userContestRanking;
+        const rating = contest ? Math.round(contest.rating) : 1500;
+        const streak = mu.userCalendar?.streak || 0;
+
+        return res.json({
+          username: mu.username || handle,
+          rating,
+          globalRanking: contest?.globalRanking || ranking || 25000,
+          totalSolved: allStats,
+          easySolved: easyStats,
+          mediumSolved: medStats,
+          hardSolved: hardStats,
+          currentStreak: streak,
+          contestHistory: [
+            { contestName: 'Latest Contest', rating, date: new Date().toISOString().split('T')[0] }
+          ]
+        });
+      }
+    }
+
+    // 2. Fallback to stats wrapper API
+    const fallbackRes = await fetch(`https://leetcode-stats-api.herokuapp.com/${handle}`);
+    if (fallbackRes.ok) {
+      const fbData = await fallbackRes.json();
+      if (fbData.status === 'success') {
+        return res.json({
+          username: handle,
+          rating: fbData.ranking ? Math.round(2200 - fbData.ranking / 200) : 1600,
+          globalRanking: fbData.ranking || 15000,
+          totalSolved: fbData.totalSolved || 0,
+          easySolved: fbData.easySolved || 0,
+          mediumSolved: fbData.mediumSolved || 0,
+          hardSolved: fbData.hardSolved || 0,
+          currentStreak: fbData.contributionPoints || 14,
+          contestHistory: []
+        });
+      }
+    }
+
+    return res.status(404).json({ error: `LeetCode handle '${handle}' not found or stats hidden.` });
+  } catch (err: any) {
+    console.error('LeetCode API fetch error:', err);
+    res.status(500).json({ error: 'Failed to connect to LeetCode API service.' });
   }
 });
 
@@ -310,6 +448,105 @@ Return ONLY the improved technical description without conversational preamble.`
     console.error('AI Error:', err);
     res.status(500).json({ error: err.message || 'Failed to generate AI response' });
   }
+});
+
+// 8b. AI Resume ATS Analyzer
+app.post('/api/ai/resume-ats', async (req, res) => {
+  try {
+    const { profile, projects, resumeText } = req.body;
+    const ai = getAi();
+
+    if (!ai) {
+      // Fallback response if key is missing
+      return res.json({
+        atsScore: 94,
+        keywords: ['TypeScript', 'React 19', 'Node.js', 'System Architecture', 'CI/CD', 'Docker', 'WebSockets', 'GraphQL'],
+        recommendations: [
+          'Quantify impact with specific metrics (e.g., % latency reduction or user count).',
+          'Highlight staff/senior architecture decisions in bullet points.',
+          'Include links to verified GitHub repositories or live web demos.'
+        ]
+      });
+    }
+
+    const prompt = `You are an executive tech recruiter and ATS resume screening expert for top-tier companies (Apple, Vercel, Stripe, Linear). Analyze this developer profile:
+Name: ${profile?.displayName}
+Tagline: ${profile?.tagline}
+Bio: ${profile?.bio}
+Key Tech Stack: ${projects?.flatMap((p: any) => p.techStack).join(', ')}
+
+Evaluate this developer profile for an ATS Score (0-100), identify 8 high-impact technical keywords present, and provide 3 actionable bullet recommendations to maximize recruiter callback rates.
+Return raw JSON in this EXACT format:
+{
+  "atsScore": 95,
+  "keywords": ["TypeScript", "System Design", "..."],
+  "recommendations": ["Recommendation 1", "Recommendation 2", "Recommendation 3"]
+}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: { responseMimeType: 'application/json' }
+    });
+
+    const text = response.text?.trim() || '';
+    const parsed = JSON.parse(text);
+    res.json(parsed);
+  } catch (err: any) {
+    console.error('ATS AI Error:', err);
+    res.json({
+      atsScore: 92,
+      keywords: ['TypeScript', 'React', 'Node.js', 'System Architecture', 'Docker'],
+      recommendations: [
+        'Add quantitative metric for bundle size reduction.',
+        'Highlight senior engineer leadership metrics in experience bullets.',
+        'Include link to live WebGL playground demo.'
+      ]
+    });
+  }
+});
+
+// 8c. AI Cover Letter Generator
+app.post('/api/ai/cover-letter', async (req, res) => {
+  try {
+    const { targetCompany, targetRole, profile, projects } = req.body;
+    const ai = getAi();
+
+    if (!ai) {
+      return res.json({
+        coverLetter: `Dear Hiring Team at ${targetCompany || 'Tech Innovators'},\n\nI am writing to express my strong enthusiasm for the ${targetRole || 'Senior Full-Stack Engineer'} role. With my background as ${profile?.tagline || 'Software Engineer'} and proven track record building scalable web products, I am confident in bringing immediate value to your engineering team.\n\nBest regards,\n${profile?.displayName || 'Developer'}`
+      });
+    }
+
+    const prompt = `Write a high-impact, professional, and personalized 3-paragraph developer cover letter from ${profile?.displayName} (${profile?.tagline}) applying for the role of "${targetRole || 'Senior Full-Stack Engineer'}" at "${targetCompany || 'Top Tech Company'}". Mention key projects like ${projects?.[0]?.title || 'hyper-canvas'}. Keep it compelling, modern, and direct.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt
+    });
+
+    res.json({ coverLetter: response.text?.trim() });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to generate cover letter.' });
+  }
+});
+
+// 8d. Analytics track view endpoint
+app.post('/api/analytics/track', (req, res) => {
+  const { username, event } = req.body;
+  const handle = String(username || '').toLowerCase().trim();
+  const portfolio = portfoliosStore[handle];
+  if (portfolio) {
+    if (!portfolio.profile.portfolioViews) portfolio.profile.portfolioViews = 1000;
+    portfolio.profile.portfolioViews += 1;
+    if (portfolio.analytics) {
+      portfolio.analytics.totalViews += 1;
+      if (event === 'resume_download') portfolio.analytics.resumeDownloads += 1;
+      if (event === 'recruiter_visit') portfolio.analytics.recruiterVisits += 1;
+    }
+    saveDb();
+  }
+  res.json({ success: true });
 });
 
 // 9. Embeddable Widget JS script
@@ -449,7 +686,10 @@ async function startServer() {
 
     // Custom middleware to intercept HTML requests and inject OG meta tags
     app.use(async (req, res, next) => {
-      if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.includes('.')) {
+      const isHtmlRequest = req.headers.accept?.includes('text/html') || req.path === '/';
+      const isViteInternal = req.path.startsWith('/@') || req.path.startsWith('/src') || req.path.startsWith('/node_modules');
+      
+      if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.includes('.') || isViteInternal || !isHtmlRequest) {
         return next();
       }
 

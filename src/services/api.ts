@@ -84,10 +84,13 @@ export async function savePortfolio(username: string, data: PortfolioData): Prom
     const docRef = doc(db, 'portfolios', handle);
     await setDoc(docRef, data);
 
-    // Sync back to Express backend server
+    // Sync back to Express backend server with x-owner-id header
     fetch(`/api/portfolio/${handle}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-owner-id': data.ownerId || data.id || '',
+      },
       body: JSON.stringify(data),
     }).catch((e) => console.warn('Express server sync warning:', e));
 
@@ -98,6 +101,7 @@ export async function savePortfolio(username: string, data: PortfolioData): Prom
     return false;
   }
 }
+
 
 export async function checkUsernameAvailable(username: string): Promise<{ available: boolean; reason?: string }> {
   try {
@@ -135,6 +139,44 @@ export async function fetchGitHubRepos(githubUsername: string): Promise<{ repos:
     return { repos: data.repos || [], cached: data.cached, rateLimitHit: data.rateLimitHit };
   } catch (err: any) {
     return { repos: [], error: 'Network error connecting to GitHub service' };
+  }
+}
+
+export async function fetchLeetCodeStats(username: string): Promise<any> {
+  try {
+    const res = await fetch(`/api/leetcode/${encodeURIComponent(username)}`);
+    if (res.ok) {
+      return await res.json();
+    }
+    return null;
+  } catch (err) {
+    console.warn('Failed to fetch live LeetCode stats:', err);
+    return null;
+  }
+}
+
+export async function fetchCodeforcesStats(username: string): Promise<any> {
+  try {
+    const handle = username.trim().replace(/^https?:\/\/(www\.)?codeforces\.com\/profile\//i, '').split('/')[0];
+    if (!handle) return null;
+    const res = await fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(handle)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === 'OK' && data.result?.[0]) {
+        const u = data.result[0];
+        return {
+          username: u.handle,
+          rating: u.rating || 1200,
+          maxRating: u.maxRating || 1200,
+          rank: u.rank || 'Newbie',
+          maxRank: u.maxRank || 'Newbie',
+        };
+      }
+    }
+    return null;
+  } catch (err) {
+    console.warn('Failed to fetch Codeforces stats:', err);
+    return null;
   }
 }
 

@@ -63,34 +63,36 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
   });
 
   return (
-    <div className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 relative z-10">
+    <section id="projects" className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 relative z-10">
       
-      {/* Header & Filter Controls Glass Panel */}
+      {/* Header & Filter Controls Panel */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-40px' }}
         transition={{ duration: 0.5 }}
-        className="p-6 rounded-3xl bg-slate-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4"
+        className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200/80 pb-6"
       >
         <div>
-          <h2 className="text-xl font-bold tracking-tight font-display flex items-center gap-2 text-white">
-            <Layers className="w-5 h-5 text-cyan-400" />
-            <span>Projects & Web3 Repositories</span>
+          <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-600">
+            Portfolio Showcase
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight font-display mt-1">
+            Featured Craft.
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Select any project card for details, live interactive preview, and GitHub source.
+          <p className="text-slate-500 text-sm mt-1 max-w-xl">
+            Selected applications, open-source repositories, and high-performance interactive modules.
           </p>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Filter Pills with Horizontal Touch Scrolling on Mobile */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar touch-scrolling pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
           <button
             onClick={() => setFilter('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+            className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
               filter === 'all'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
-                : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-white'
+                ? 'bg-slate-900 text-white shadow-md'
+                : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             }`}
           >
             All ({projects.length})
@@ -98,10 +100,10 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
 
           <button
             onClick={() => setFilter('live')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+            className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
               filter === 'live'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
-                : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-white'
+                ? 'bg-slate-900 text-white shadow-md'
+                : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             }`}
           >
             Live Web Apps
@@ -109,23 +111,23 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
 
           <button
             onClick={() => setFilter('github')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+            className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
               filter === 'github'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
-                : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-white'
+                ? 'bg-slate-900 text-white shadow-md'
+                : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             }`}
           >
             GitHub Repos
           </button>
 
-          {allTags.map((tag) => (
+          {allTags.slice(0, 5).map((tag) => (
             <button
               key={tag}
               onClick={() => setFilter(tag)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono border transition-all cursor-pointer ${
+              className={`min-h-[44px] px-3.5 py-2 rounded-full text-xs font-mono border transition-all shrink-0 cursor-pointer ${
                 filter === tag
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
-                  : 'bg-slate-950/60 border-slate-800/80 text-slate-400 hover:text-white'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                  : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               #{tag}
@@ -135,7 +137,7 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
       </motion.div>
 
       {/* Cards Grid with Framer Motion AnimatePresence */}
-      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <AnimatePresence mode="popLayout">
           {filteredProjects.map((project, index) => {
             const primaryLang = project.githubStats?.language || project.techStack[0] || 'Code';
@@ -148,14 +150,14 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
-                exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                transition={{ duration: 0.4, delay: index * 0.06 }}
+                exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
                 whileHover={{ y: -6 }}
                 onClick={() => onSelectProject(project)}
-                className="group rounded-3xl bg-slate-900/40 backdrop-blur-xl border border-white/10 hover:border-cyan-500/50 shadow-2xl hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden relative"
+                className="group rounded-3xl bg-white border border-slate-200/80 hover:border-blue-300 shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden relative"
               >
-                {/* Thumbnail / Language Placeholder */}
-                <div className="relative h-48 w-full overflow-hidden bg-slate-950">
+                {/* Thumbnail / Media Container */}
+                <div className="relative aspect-video w-full overflow-hidden bg-slate-100 border-b border-slate-100">
                   {project.imageUrl ? (
                     <img
                       src={project.imageUrl}
@@ -163,14 +165,14 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className={`w-full h-full bg-gradient-to-br ${getLanguageGradient(primaryLang)} p-6 flex flex-col justify-between relative border-b border-slate-800/80`}>
+                    <div className="w-full h-full bg-gradient-to-br from-slate-100 via-blue-50/50 to-indigo-50 p-6 flex flex-col justify-between relative">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono font-bold text-cyan-300 px-3 py-1 rounded-xl bg-slate-950/90 border border-cyan-500/30">
+                        <span className="text-xs font-mono font-bold text-blue-700 px-3 py-1 rounded-full bg-white border border-blue-200 shadow-2xs">
                           {primaryLang}
                         </span>
-                        <Code2 className="w-8 h-8 text-cyan-400/30" />
+                        <Code2 className="w-8 h-8 text-blue-400/40" />
                       </div>
-                      <div className="font-mono text-xl font-black text-white/90 tracking-wider">
+                      <div className="font-mono text-xl font-black text-slate-800 tracking-wider">
                         &lt;{project.title.substring(0, 16)} /&gt;
                       </div>
                     </div>
@@ -179,14 +181,9 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
                   {/* Badges Overlay */}
                   <div className="absolute top-3 right-3 flex gap-2">
                     {project.hostedUrl && (
-                      <span className="px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 font-bold text-[10px] backdrop-blur-md shadow-lg flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        Live App
-                      </span>
-                    )}
-                    {project.source === 'merged' && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-purple-950/90 border border-purple-500/50 text-purple-300 font-bold text-[10px] backdrop-blur-md">
-                        Merged
+                      <span className="px-3 py-1 rounded-full bg-emerald-500 text-white font-bold text-[10px] shadow-sm flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                        Live Demo
                       </span>
                     )}
                   </div>
@@ -196,13 +193,13 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
                 <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-extrabold text-lg text-white group-hover:text-cyan-300 transition-colors line-clamp-1 font-display">
+                      <h3 className="font-black text-xl text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1 font-display">
                         {project.title}
                       </h3>
-                      <ArrowUpRight className="w-5 h-5 text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0" />
+                      <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
                     </div>
 
-                    <p className="text-xs line-clamp-2 mt-2 leading-relaxed font-sans text-slate-400">
+                    <p className="mt-2 text-xs text-slate-600 line-clamp-2 leading-relaxed">
                       {project.description}
                     </p>
                   </div>
@@ -210,29 +207,24 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
                   {/* Tech Stack Chips */}
                   <div className="space-y-3 pt-2">
                     <div className="flex flex-wrap gap-1.5">
-                      {project.techStack.map((tech) => {
-                        const lower = tech.toLowerCase();
-                        const styleClass = TECH_COLOR_MAP[lower] || 'bg-slate-800/90 text-slate-300 border-slate-700/80';
-                        return (
-                          <button
-                            key={tech}
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setFilter(tech);
-                            }}
-                            className={`text-[10px] font-mono px-2.5 py-0.5 rounded-md border font-semibold hover:opacity-80 transition-opacity cursor-pointer ${styleClass}`}
-                            title={`Filter by #${tech}`}
-                          >
-                            #{tech}
-                          </button>
-                        );
-                      })}
+                      {project.techStack.map((tech) => (
+                        <button
+                          key={tech}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFilter(tech);
+                          }}
+                          className="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors cursor-pointer"
+                        >
+                          #{tech}
+                        </button>
+                      ))}
                     </div>
 
                     {/* Custom Links Bar */}
                     {allLinks.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800/80">
+                      <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
                         {allLinks.map((link) => {
                           const info = getLinkTypeInfo(link.type);
                           const Icon = info.icon;
@@ -243,9 +235,9 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-slate-300 hover:text-white text-[11px] font-semibold transition-all hover:scale-105"
+                              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-semibold transition-all hover:scale-105"
                             >
-                              <Icon className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                              <Icon className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                               <span className="truncate max-w-[110px]">{link.label}</span>
                             </a>
                           );
@@ -255,21 +247,21 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
 
                     {/* GitHub Repo Stats Bar */}
                     {project.githubStats && (
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] text-slate-400">
-                        <div className="flex items-center gap-3 font-mono">
-                          <span className="flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400/20" />
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-500 font-mono">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1 text-amber-600 font-bold">
+                            <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                             {project.githubStats.stars}
                           </span>
                           <span className="flex items-center gap-1">
-                            <GitFork className="w-3.5 h-3.5 text-blue-400" />
+                            <GitFork className="w-3.5 h-3.5" />
                             {project.githubStats.forks}
                           </span>
                         </div>
 
                         {showCommitTimestamp && (
-                          <span className="text-[10px] font-mono flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-950/80 border border-slate-800 text-cyan-300" title="Latest Commit">
-                            <GitCommit className="w-3 h-3 text-cyan-400 shrink-0" />
+                          <span className="text-[10px] flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">
+                            <GitCommit className="w-3 h-3 text-blue-600 shrink-0" />
                             <span>
                               {new Date(project.githubStats.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
@@ -290,19 +282,19 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-12 text-center bg-slate-900/40 rounded-3xl border border-slate-800 backdrop-blur-xl"
+          className="p-12 text-center bg-white rounded-3xl border border-slate-200 shadow-sm"
         >
-          <Filter className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-          <div className="text-sm font-semibold text-slate-300">No projects match the selected filter</div>
+          <Filter className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+          <div className="text-sm font-semibold text-slate-700">No projects match the selected filter</div>
           <button
             onClick={() => setFilter('all')}
-            className="mt-3 text-xs text-cyan-400 hover:underline font-bold cursor-pointer"
+            className="mt-3 text-xs text-blue-600 hover:underline font-bold cursor-pointer"
           >
             Reset Filters
           </button>
         </motion.div>
       )}
-    </div>
+    </section>
   );
 };
 

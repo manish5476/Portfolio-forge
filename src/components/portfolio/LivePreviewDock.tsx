@@ -37,28 +37,28 @@ export const LivePreviewDock: React.FC<LivePreviewDockProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex bg-slate-900/30 backdrop-blur-2xl animate-in fade-in duration-300">
       
       {/* LEFT DOCK RAIL: Compact project selector */}
-      <div className="w-80 border-r border-slate-800 bg-slate-950 flex flex-col justify-between shrink-0 hidden md:flex">
+      <div className="w-80 border-r border-[#E7EAF0] bg-white flex flex-col justify-between shrink-0 hidden md:flex shadow-xl">
         
         {/* Top Header */}
-        <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
+        <div className="p-4 border-b border-[#E7EAF0] flex items-center justify-between">
           <button
             onClick={onCloseDock}
-            className="flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 text-cyan-400" />
+            <ArrowLeft className="w-4 h-4 text-blue-600" />
             <span>Return to Portfolio</span>
           </button>
-          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
+          <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
             Dock Active
           </span>
         </div>
 
         {/* Project Rail Cards List */}
         <div className="p-3 space-y-2.5 overflow-y-auto flex-1">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 px-2">
             Hosted Web Apps ({liveProjects.length})
           </div>
 
@@ -71,25 +71,25 @@ export const LivePreviewDock: React.FC<LivePreviewDockProps> = ({
                 onClick={() => onSelectProject(p)}
                 className={`p-3 rounded-2xl border transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-slate-900 border-cyan-500 shadow-lg shadow-cyan-500/10'
-                    : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700 opacity-70 hover:opacity-100'
+                    ? 'bg-blue-50/80 border-blue-300 shadow-sm'
+                    : 'bg-white border-[#E7EAF0] hover:border-slate-300 opacity-80 hover:opacity-100'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
                     {p.imageUrl ? (
                       <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover" />
                     ) : (
-                      <Code2 className="w-5 h-5 text-cyan-400" />
+                      <Code2 className="w-5 h-5 text-blue-600" />
                     )}
                   </div>
 
                   <div className="overflow-hidden flex-1">
-                    <div className="font-bold text-xs text-white truncate flex items-center justify-between">
+                    <div className="font-bold text-xs text-slate-900 truncate flex items-center justify-between">
                       <span className="truncate">{p.title}</span>
-                      {isActive && <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0 ml-1" />}
+                      {isActive && <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0 ml-1" />}
                     </div>
-                    <div className="text-[10px] text-slate-400 truncate mt-0.5">{p.hostedUrl}</div>
+                    <div className="text-[10px] text-slate-500 truncate mt-0.5">{p.hostedUrl}</div>
                   </div>
                 </div>
               </div>
