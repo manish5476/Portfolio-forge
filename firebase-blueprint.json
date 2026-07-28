@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "PortfolioData": {
+      "title": "PortfolioData",
+      "description": "Developer portfolio data model containing profile, projects, and achievements",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "username": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "profile": {
+          "type": "object",
+          "description": "Profile details including name, bio, social links, theme"
+        },
+        "projects": {
+          "type": "array",
+          "description": "List of developer projects and repositories"
+        },
+        "achievements": {
+          "type": "array",
+          "description": "List of career milestones and achievements"
+        }
+      },
+      "required": ["id", "username", "profile", "projects", "achievements", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/portfolios/{username}": {
+      "schema": "PortfolioData",
+      "description": "User developer portfolio documents keyed by username handle"
+    }
+  }
+}

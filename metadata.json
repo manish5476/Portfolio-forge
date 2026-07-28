@@ -1,0 +1,6 @@
+{
+  "name": "Portfolio Forge",
+  "description": "Multi-tenant portfolio website builder with GitHub integration, live project previews, and embed tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
